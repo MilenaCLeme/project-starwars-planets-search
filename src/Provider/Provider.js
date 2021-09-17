@@ -6,6 +6,7 @@ function Provider({ children }) {
   const [data, setData] = useState([]);
   const [filters, setFilters] = useState({
     filterByName: { name: '' },
+    filterByNumericValues: [],
   });
   const [app, setApp] = useState([]);
 
@@ -22,6 +23,14 @@ function Provider({ children }) {
     });
   }
 
+  function armazenarFiltersSelect(column, comparison, value) {
+    const selects = { column, comparison, value };
+    setFilters((prevState) => ({
+      ...filters,
+      filterByNumericValues: [...prevState.filterByNumericValues, selects],
+    }));
+  }
+
   // componentDiMont
   useEffect(() => {
     async function fetchMyAPI() {
@@ -34,16 +43,31 @@ function Provider({ children }) {
   }, []);
 
   useEffect(() => {
-    const { name } = filters.filterByName;
-    const filtou = app.filter((item) => item.name.indexOf(name) > 0);
-    const armazenar = name === '' ? app : filtou;
-    armazenarData(armazenar);
+    const { filterByName, filterByNumericValues } = filters;
+    const { name } = filterByName;
+    const filtarNome = app.filter((item) => item.name.indexOf(name) > 0);
+    const alterarData = name === '' ? app : filtarNome;
+    armazenarData(alterarData);
+    filterByNumericValues.forEach(({ column, comparison, value }) => {
+      if (comparison === 'menor que') {
+        const filtarcolunaMenor = alterarData.filter((item) => item[column] < value);
+        armazenarData(filtarcolunaMenor);
+      } else if (comparison === 'maior que') {
+        const filtarcolunaMaior = alterarData.filter((item) => item[column] > value);
+        armazenarData(filtarcolunaMaior);
+      } else if (comparison === 'igual a') {
+        const filtarcolunaIgual = alterarData
+          .filter((item) => Number(item[column]) === value);
+        armazenarData(filtarcolunaIgual);
+      }
+    });
   }, [app, filters]);
 
   const contextValue = {
     data,
     armazenarFilters,
     filters,
+    armazenarFiltersSelect,
   };
 
   return (
