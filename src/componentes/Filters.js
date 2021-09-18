@@ -2,12 +2,35 @@ import React, { useContext, useState } from 'react';
 import AppContext from '../Provider/MyContext';
 
 function Filters() {
-  const [column, setSelectTipo] = useState('');
-  const [comparison, setSelecMaior] = useState('');
+  const [column, setSelectTipo] = useState('population');
+  const [comparison, setSelecMaior] = useState('maior que');
   const [value, setInputNumero] = useState(0);
+  const [columnEscrito, setColumnEscrito] = useState(
+    ['population', 'orbital_period', 'diameter', 'rotation_period', 'surface_water'],
+  );
+  const [excluido, setExcluido] = useState([]);
 
-  const { armazenarFilters, filters, armazenarFiltersSelect } = useContext(AppContext);
+  const {
+    armazenarFilters,
+    filters,
+    armazenarFiltersSelect,
+    excluirFiltersSelect,
+  } = useContext(AppContext);
   const { name } = filters.filterByName;
+
+  function removerColumn(paramentro) {
+    const arColummEscrito = [...columnEscrito];
+    arColummEscrito.splice(columnEscrito.indexOf(paramentro), 1);
+    setColumnEscrito(arColummEscrito);
+    setExcluido([...excluido, paramentro]);
+  }
+
+  function excluiItemDoSetExcluido(item) {
+    const arExcluido = [...excluido];
+    arExcluido.splice(excluido.indexOf(item), 1);
+    setExcluido(arExcluido);
+    setColumnEscrito([...columnEscrito, item]);
+  }
 
   return (
     <form>
@@ -26,18 +49,14 @@ function Filters() {
         data-testid="column-filter"
         onChange={ ({ target }) => { setSelectTipo(target.value); } }
       >
-        <option value="">selecionar</option>
-        <option value="population">population</option>
-        <option value="orbital_period">orbital_period</option>
-        <option value="diameter">diameter</option>
-        <option value="rotation_period">rotation_period</option>
-        <option value="surface_water">surface_water</option>
+        {
+          columnEscrito.map((item) => <option key={ item } value={ item }>{item}</option>)
+        }
       </select>
       <select
         data-testid="comparison-filter"
         onChange={ ({ target }) => { setSelecMaior(target.value); } }
       >
-        <option value="">selecionar</option>
         <option value="maior que">maior que</option>
         <option value="menor que">menor que</option>
         <option value="igual a">igual a</option>
@@ -54,10 +73,29 @@ function Filters() {
       <button
         type="button"
         data-testid="button-filter"
-        onClick={ () => { armazenarFiltersSelect(column, comparison, value); } }
+        onClick={ () => {
+          armazenarFiltersSelect(column, comparison, value);
+          removerColumn(column);
+        } }
       >
         Enviar
       </button>
+      {
+        excluido.map((item) => (
+          <div data-testid="filter" key={ item }>
+            {item}
+            <button
+              type="button"
+              onClick={ () => {
+                excluirFiltersSelect(item);
+                excluiItemDoSetExcluido(item);
+              } }
+            >
+              x
+            </button>
+          </div>
+        ))
+      }
     </form>
   );
 }

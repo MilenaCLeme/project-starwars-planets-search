@@ -25,10 +25,19 @@ function Provider({ children }) {
 
   function armazenarFiltersSelect(column, comparison, value) {
     const selects = { column, comparison, value };
-    setFilters((prevState) => ({
+    setFilters({
       ...filters,
-      filterByNumericValues: [...prevState.filterByNumericValues, selects],
-    }));
+      filterByNumericValues: [...filters.filterByNumericValues, selects],
+    });
+  }
+
+  function excluirFiltersSelect(item) {
+    const arrayFilterByNumericV = [...filters.filterByNumericValues];
+    const filtragemArray = arrayFilterByNumericV.filter(({ column }) => column !== item);
+    setFilters({
+      ...filters,
+      filterByNumericValues: filtragemArray,
+    });
   }
 
   // componentDiMont
@@ -48,16 +57,22 @@ function Provider({ children }) {
     const filtarNome = app.filter((item) => item.name.indexOf(name) > 0);
     const alterarData = name === '' ? app : filtarNome;
     armazenarData(alterarData);
+    let dataFiltros = [...alterarData];
     filterByNumericValues.forEach(({ column, comparison, value }) => {
-      if (comparison === 'menor que') {
-        const filtarcolunaMenor = alterarData.filter((item) => item[column] < value);
+      if (comparison === 'menor que' && dataFiltros.length > 0) {
+        const filtarcolunaMenor = dataFiltros
+          .filter((item) => Number(item[column]) < value);
+        dataFiltros = filtarcolunaMenor;
         armazenarData(filtarcolunaMenor);
-      } else if (comparison === 'maior que') {
-        const filtarcolunaMaior = alterarData.filter((item) => item[column] > value);
+      } else if (comparison === 'maior que' && dataFiltros.length > 0) {
+        const filtarcolunaMaior = dataFiltros
+          .filter((item) => Number(item[column]) > value);
+        dataFiltros = filtarcolunaMaior;
         armazenarData(filtarcolunaMaior);
-      } else if (comparison === 'igual a') {
-        const filtarcolunaIgual = alterarData
+      } else if (comparison === 'igual a' && dataFiltros.length > 0) {
+        const filtarcolunaIgual = dataFiltros
           .filter((item) => Number(item[column]) === value);
+        dataFiltros = filtarcolunaIgual;
         armazenarData(filtarcolunaIgual);
       }
     });
@@ -68,6 +83,7 @@ function Provider({ children }) {
     armazenarFilters,
     filters,
     armazenarFiltersSelect,
+    excluirFiltersSelect,
   };
 
   return (
